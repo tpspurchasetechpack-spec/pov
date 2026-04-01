@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Branch Locations</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --gold:#F5C842; --gold-deep:#D4A017; --gold-light:#FDE882; --gold-pale:#FFF8DC;
+      --amber:#E8900A; --saffron:#FF8C00; --cream:#FFFBF0;
+      --brown-dark:#3B1F00; --brown-mid:#7A4510; --brown-light:#C47B2B;
+      --white:#FFFFFF; --shadow-gold:rgba(212,160,23,0.4);
+    }
+    *{ margin:0; padding:0; box-sizing:border-box; }
+    html{ scroll-behavior:smooth; }
+    body{ font-family:'Crimson Pro',Georgia,serif; background:var(--cream); color:var(--brown-dark); min-height:100vh; overflow-x:hidden; }
+    body::before{ content:''; position:fixed; inset:0; background:radial-gradient(ellipse 120% 60% at 50% 0%,#FDE88244 0%,transparent 60%),radial-gradient(ellipse 80% 80% at 80% 100%,#F5C84222 0%,transparent 55%),radial-gradient(ellipse 60% 60% at 10% 80%,#FF8C0011 0%,transparent 50%); pointer-events:none; z-index:0; }
+
+    /* ── Top border ── */
+    .top-border{ height:8px; background:linear-gradient(90deg,var(--brown-dark) 0%,var(--gold) 20%,var(--amber) 40%,var(--gold) 60%,var(--amber) 80%,var(--brown-dark) 100%); position:relative; z-index:10; }
+
+    /* ── CSS Diya ── */
+    .css-diya{ display:flex; flex-direction:column; align-items:center; animation:flicker 2s ease-in-out infinite; }
+    .css-diya:nth-child(2){ animation-delay:0.4s; }
+    .css-diya:nth-child(3){ animation-delay:0.8s; }
+    .css-diya:nth-child(4){ animation-delay:1.2s; }
+    .css-diya:nth-child(5){ animation-delay:1.6s; }
+    @keyframes flicker{ 0%,100%{filter:drop-shadow(0 0 6px #FFD700) brightness(1)} 25%{filter:drop-shadow(0 0 10px #FF8C00) brightness(1.15)} 50%{filter:drop-shadow(0 0 4px #FFA500) brightness(0.95)} 75%{filter:drop-shadow(0 0 12px #FFD700) brightness(1.1)} }
+    .flame{ width:10px; height:16px; background:linear-gradient(to top,#FF4500,#FF8C00 40%,#FFD700 70%,#FFFACD); border-radius:50% 50% 30% 30%/60% 60% 40% 40%; animation:flameAnim 1.5s ease-in-out infinite; }
+    @keyframes flameAnim{ 0%,100%{transform:scaleX(1) skewX(0deg)} 33%{transform:scaleX(0.85) skewX(-8deg)} 66%{transform:scaleX(1.1) skewX(6deg)} }
+    .diya-body{ width:24px; height:8px; background:linear-gradient(135deg,#D4A017,#8B4513,#D4A017); border-radius:0 0 50% 50%/0 0 100% 100%; box-shadow:0 2px 6px rgba(0,0,0,0.4); margin-top:1px; }
+    .diya-base{ width:28px; height:3px; background:#8B4513; border-radius:50%; opacity:0.7; }
+    .diya-row{ display:flex; justify-content:center; align-items:center; gap:1.2rem; margin:0.7rem 0; }
+
+    /* ── Hero ── */
+    .hero{ position:relative; z-index:2; background:linear-gradient(135deg,#1a0800 0%,#3B1F00 40%,#5A2D00 70%,#2a1000 100%); overflow:hidden; padding:2.5rem 1rem 2rem; text-align:center; }
+    .hero::after{ content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--gold),var(--amber),var(--gold),transparent); }
+    .hero-bg{ position:absolute; inset:0; background:radial-gradient(ellipse 60% 80% at 50% 50%,#FF8C0022 0%,transparent 70%),radial-gradient(ellipse 30% 50% at 20% 80%,#FFD70015 0%,transparent 50%),radial-gradient(ellipse 30% 50% at 80% 80%,#FFD70015 0%,transparent 50%); pointer-events:none; }
+    .hero-content{ position:relative; z-index:2; }
+    .hero-logo{ font-size:2.8rem; margin-bottom:0.5rem; filter:drop-shadow(0 0 20px #FFD700); animation:pulse 3s ease-in-out infinite; }
+    @keyframes pulse{ 0%,100%{filter:drop-shadow(0 0 16px #FFD700)} 50%{filter:drop-shadow(0 0 32px #FFD700) brightness(1.2)} }
+    .page-title{ font-family:'Cinzel Decorative',serif; font-size:clamp(1.6rem,5vw,2.8rem); font-weight:900; color:var(--gold-light); text-shadow:0 0 40px rgba(255,200,50,0.6),0 2px 20px rgba(255,140,0,0.4),0 4px 4px rgba(0,0,0,0.5); animation:glow 3s ease-in-out infinite; line-height:1.2; }
+    @keyframes glow{ 0%,100%{text-shadow:0 0 30px rgba(255,200,50,0.5),0 2px 20px rgba(255,140,0,0.3),0 4px 4px rgba(0,0,0,0.5)} 50%{text-shadow:0 0 60px rgba(255,200,50,0.9),0 2px 30px rgba(255,140,0,0.6),0 4px 4px rgba(0,0,0,0.5)} }
+    .page-subtitle{ font-family:'Cinzel',serif; font-size:clamp(0.65rem,2vw,0.85rem); color:#FFC878; letter-spacing:0.24em; margin-top:0.4rem; text-transform:uppercase; opacity:0.85; }
+    .ornament{ display:flex; align-items:center; justify-content:center; gap:0.6rem; margin-top:1rem; }
+    .ornament-line{ height:1px; width:60px; background:linear-gradient(90deg,transparent,var(--gold)); }
+    .ornament-line.r{ background:linear-gradient(90deg,var(--gold),transparent); }
+    .ornament-diamond{ width:6px; height:6px; background:var(--gold); transform:rotate(45deg); border-radius:1px; }
+
+    /* ── Tab bar ── */
+    .tab-bar{ position:sticky; top:0; z-index:20; background:linear-gradient(135deg,#fff8e8,#fff3d4); border-bottom:2.5px solid var(--gold-deep); display:flex; overflow-x:auto; scrollbar-width:none; box-shadow:0 4px 20px rgba(212,160,23,0.2); }
+    .tab-bar::-webkit-scrollbar{ display:none; }
+    .branch-tab{ flex:1; min-width:90px; padding:1rem 0.5rem; border:none; background:transparent; font-family:'Cinzel',serif; font-size:clamp(0.65rem,2.2vw,0.8rem); font-weight:700; letter-spacing:0.07em; color:var(--brown-mid); cursor:pointer; border-bottom:3px solid transparent; transition:all 0.25s cubic-bezier(0.4,0,0.2,1); white-space:nowrap; position:relative; }
+    .branch-tab:hover{ color:var(--brown-dark); background:rgba(212,160,23,0.1); }
+    .branch-tab.active{ color:var(--brown-dark); border-bottom:3px solid var(--gold-deep); background:rgba(212,160,23,0.16); }
+    .branch-tab.active::after{ content:''; position:absolute; bottom:-3px; left:20%; right:20%; height:3px; background:var(--gold-deep); border-radius:2px 2px 0 0; }
+
+    /* ── Page body ── */
+    .page-body{ position:relative; z-index:2; max-width:700px; margin:0 auto; padding:2rem 1rem 5rem; }
+
+    /* ── Branch card ── */
+    .branch-card{ background:linear-gradient(160deg,#FFFDF5,#FFF8DC,#FFF0B8); border:1.5px solid rgba(212,160,23,0.5); border-radius:20px; overflow:hidden; box-shadow:0 12px 40px var(--shadow-gold),0 4px 12px rgba(0,0,0,0.1),inset 0 1px 0 #FFFFFF99; animation:cardIn 0.4s cubic-bezier(0.34,1.2,0.64,1); }
+    @keyframes cardIn{ from{opacity:0;transform:translateY(18px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+    /* ── Card header ── */
+    .card-header{ background:linear-gradient(135deg,#1a0800,#3B1F00,#4a2500); padding:1.5rem 1.6rem 1.3rem; display:flex; align-items:center; gap:1rem; border-bottom:2px solid var(--gold-deep); position:relative; overflow:hidden; }
+    .card-header::before{ content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(253,232,130,0.6),transparent); }
+    .card-header::after{ content:''; position:absolute; bottom:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(212,160,23,0.8),transparent); }
+    .card-emblem{ font-size:2.4rem; flex-shrink:0; filter:drop-shadow(0 0 12px #FFD700); }
+    .card-title-wrap{ flex:1; }
+    .card-name{ font-family:'Cinzel Decorative',serif; font-size:clamp(0.95rem,3.2vw,1.45rem); font-weight:700; color:var(--gold-light); text-shadow:0 0 20px rgba(255,200,50,0.5),0 1px 3px rgba(0,0,0,0.5); line-height:1.3; }
+    .card-active-badge{ display:inline-flex; align-items:center; gap:0.35rem; margin-top:0.3rem; background:rgba(80,200,60,0.15); border:1px solid rgba(80,200,60,0.35); border-radius:20px; padding:0.2rem 0.6rem; font-family:'Cinzel',serif; font-size:0.58rem; letter-spacing:0.12em; color:#7EE87E; }
+    .badge-dot{ width:6px; height:6px; background:#4ade80; border-radius:50%; animation:bdot 2s ease-in-out infinite; box-shadow:0 0 5px #4ade80; }
+    @keyframes bdot{ 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ── Photo ── */
+    .card-photo{ width:100%; background:linear-gradient(135deg,#2a1400,#4a2200); overflow:hidden; border-bottom:2px solid var(--gold-deep); position:relative; }
+    .card-photo img{ width:100%; height:auto; display:block; transition:transform 0.5s ease; }
+    .card-photo:hover img{ transform:scale(1.015); }
+    .photo-placeholder{ height:210px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.5rem; border:1.5px dashed rgba(212,160,23,0.3); }
+    .ph-icon{ font-size:2.4rem; opacity:0.35; }
+    .ph-text{ color:rgba(212,160,23,0.4); font-family:'Cinzel',serif; font-size:0.72rem; letter-spacing:0.14em; }
+
+    /* ── Card body ── */
+    .card-body{ padding:1.5rem 1.6rem 1.8rem; }
+
+    /* ── About ── */
+    .about-box{ background:linear-gradient(135deg,#1a0800,#3B1F00); border:1.5px solid var(--gold-deep); border-radius:14px; padding:1.2rem 1.3rem; margin-bottom:1.4rem; position:relative; overflow:hidden; }
+    .about-box::before{ content:''; position:absolute; top:0; left:0; right:0; height:1.5px; background:linear-gradient(90deg,transparent,rgba(253,232,130,0.5),transparent); }
+    .about-label{ font-family:'Cinzel Decorative',serif; font-size:0.78rem; color:var(--gold-light); margin-bottom:0.6rem; display:flex; align-items:center; gap:0.5rem; }
+    .about-label::after{ content:''; flex:1; height:1px; background:linear-gradient(90deg,rgba(212,160,23,0.3),transparent); }
+    .about-text{ color:#FFD68A; font-size:0.93rem; line-height:1.75; font-style:italic; }
+
+    /* ── Section heading ── */
+    .section-heading{ font-family:'Cinzel Decorative',serif; font-size:0.76rem; font-weight:700; color:var(--brown-dark); letter-spacing:0.08em; margin-bottom:0.9rem; display:flex; align-items:center; gap:0.5rem; padding-bottom:0.55rem; border-bottom:1.5px solid rgba(212,160,23,0.35); }
+    .section-heading-icon{ font-size:0.95rem; }
+
+    /* ── Info grid ── */
+    .info-grid{ display:grid; grid-template-columns:1fr 1fr; gap:0.9rem; margin-bottom:1.4rem; }
+    @media(max-width:460px){ .info-grid{ grid-template-columns:1fr; } }
+    .info-tile{ background:linear-gradient(160deg,#2a1400 0%,#3d1e00 100%); border:1px solid rgba(212,160,23,0.4); border-radius:13px; padding:1rem 1.1rem; box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),0 2px 8px rgba(0,0,0,0.2); transition:border-color 0.25s,box-shadow 0.25s,transform 0.25s; }
+    .info-tile:hover{ border-color:rgba(212,160,23,0.8); box-shadow:0 4px 18px rgba(212,160,23,0.18); transform:translateY(-2px); }
+    .info-tile-label{ font-family:'Cinzel',serif; font-size:0.61rem; letter-spacing:0.16em; color:#F5C842; text-transform:uppercase; margin-bottom:0.4rem; opacity:0.9; }
+    .info-tile-value{ color:#FFF3CC; font-size:0.92rem; line-height:1.65; word-break:break-word; font-weight:500; }
+    .info-tile-value.empty{ font-style:italic; color:#7a5030; font-size:0.82rem; }
+
+    /* ── GST number special ── */
+    .gst-number{ font-family:'Crimson Pro',monospace; font-size:1.05rem; font-weight:700; letter-spacing:0.06em; color:#FFE880; }
+
+    /* ── Contact section ── */
+    .contact-section{ margin-bottom:1.4rem; }
+    .contact-row{ display:flex; align-items:center; gap:0.85rem; padding:0.9rem 1rem; background:linear-gradient(160deg,#2a1400 0%,#3d1e00 100%); border:1px solid rgba(212,160,23,0.35); border-radius:13px; margin-bottom:0.6rem; text-decoration:none; box-shadow:inset 0 1px 0 rgba(255,255,255,0.05),0 2px 6px rgba(0,0,0,0.15); transition:all 0.25s cubic-bezier(0.4,0,0.2,1); }
+    .contact-row:hover{ border-color:rgba(212,160,23,0.9); background:linear-gradient(160deg,#361a00 0%,#4e2600 100%); box-shadow:0 6px 22px rgba(212,160,23,0.2); transform:translateX(3px); }
+    .contact-icon-wrap{ width:42px; height:42px; flex-shrink:0; background:rgba(212,160,23,0.12); border:1px solid rgba(212,160,23,0.3); border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:1.15rem; transition:background 0.2s; }
+    .contact-row:hover .contact-icon-wrap{ background:rgba(212,160,23,0.22); }
+    .contact-text{ flex:1; min-width:0; }
+    .contact-label{ font-family:'Cinzel',serif; font-size:0.58rem; letter-spacing:0.16em; color:#F5C842; text-transform:uppercase; margin-bottom:0.2rem; opacity:0.9; }
+    .contact-value{ color:#FFFFFF; font-size:0.97rem; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .contact-value.empty{ font-style:italic; color:#7a5020; font-size:0.82rem; white-space:normal; }
+    .contact-arrow{ color:#D4A017; font-size:0.85rem; opacity:0.5; flex-shrink:0; transition:opacity 0.2s,transform 0.2s; }
+    .contact-row:hover .contact-arrow{ opacity:1; transform:translateX(3px); }
+
+    /* ── Bank section ── */
+    .bank-section{ margin-bottom:1.4rem; }
+    .bank-grid{ display:grid; grid-template-columns:1fr 1fr; gap:0.9rem; }
+    @media(max-width:460px){ .bank-grid{ grid-template-columns:1fr; } .bank-tile.full-width{ grid-column:auto; } }
+    .bank-tile{ background:linear-gradient(160deg,#1e1000 0%,#2e1800 60%,#1a0e00 100%); border:1.5px solid rgba(212,160,23,0.45); border-radius:13px; padding:1rem 1.1rem; box-shadow:inset 0 1px 0 rgba(255,220,100,0.07),0 2px 10px rgba(0,0,0,0.25); transition:border-color 0.25s,box-shadow 0.25s,transform 0.25s; position:relative; overflow:hidden; }
+    .bank-tile::before{ content:''; position:absolute; top:0; left:0; right:0; height:1.5px; background:linear-gradient(90deg,transparent,rgba(245,200,66,0.5),transparent); }
+    .bank-tile:hover{ border-color:rgba(212,160,23,1); box-shadow:0 6px 24px rgba(212,160,23,0.22); transform:translateY(-2px); }
+    .bank-tile.full-width{ grid-column:1/-1; }
+    .bank-tile-label{ font-family:'Cinzel',serif; font-size:0.58rem; letter-spacing:0.18em; color:#F5C842; text-transform:uppercase; margin-bottom:0.5rem; opacity:0.9; }
+    .bank-tile-value{ color:#FFFFFF; font-size:1rem; font-weight:700; letter-spacing:0.05em; word-break:break-all; text-shadow:0 1px 4px rgba(0,0,0,0.4); }
+    .bank-tile-value.empty{ color:#6b4020; font-weight:400; font-size:0.85rem; font-style:italic; text-shadow:none; }
+
+    /* ── GST Certificate button ── */
+    .gst-btn-wrap{ margin-bottom:1.3rem; }
+    .gst-cert-btn{ width:100%; display:flex; align-items:center; gap:0.75rem; padding:1rem 1.3rem; background:linear-gradient(135deg,#1a3300 0%,#2d5200 60%,#1a3300 100%); border:1.5px solid rgba(80,200,60,0.4); border-radius:14px; cursor:pointer; font-family:'Cinzel',serif; font-size:0.78rem; font-weight:700; letter-spacing:0.1em; color:#7EE87E; box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),0 4px 14px rgba(0,0,0,0.25); transition:all 0.25s cubic-bezier(0.4,0,0.2,1); position:relative; overflow:hidden; }
+    .gst-cert-btn::before{ content:''; position:absolute; top:0; left:0; right:0; height:1.5px; background:linear-gradient(90deg,transparent,rgba(120,230,100,0.5),transparent); }
+    .gst-cert-btn:hover{ background:linear-gradient(135deg,#224400 0%,#3d6e00 60%,#224400 100%); border-color:rgba(100,230,80,0.8); color:#A8F5A8; box-shadow:0 6px 24px rgba(80,200,60,0.2); transform:translateY(-1px); }
+    .gst-cert-btn:active{ transform:translateY(0); }
+    .gst-btn-icon{ font-size:1.15rem; flex-shrink:0; }
+    .gst-btn-text{ flex:1; text-align:left; }
+    .gst-btn-arrow{ font-size:0.8rem; opacity:0.5; transition:opacity 0.2s,transform 0.2s; }
+    .gst-cert-btn:hover .gst-btn-arrow{ opacity:1; transform:translateX(3px); }
+
+    /* ── Social row ── */
+    .social-section{ }
+    .social-row{ display:flex; gap:0.6rem; flex-wrap:wrap; }
+    .social-btn{ display:flex; align-items:center; gap:0.4rem; padding:0.52rem 0.9rem; border-radius:9px; text-decoration:none; font-family:'Cinzel',serif; font-size:0.68rem; letter-spacing:0.07em; font-weight:700; border:1px solid; transition:all 0.2s; }
+    .social-btn:hover{ transform:translateY(-2px); box-shadow:0 5px 14px rgba(0,0,0,0.3); }
+    .social-btn.youtube{ background:#1a0000; border-color:#FF0000aa; color:#FF6B6B; }
+    .social-btn.youtube:hover{ background:#2a0000; border-color:#FF0000; }
+    .social-btn.facebook{ background:#001a2e; border-color:#1877F2aa; color:#60A5FA; }
+    .social-btn.facebook:hover{ background:#002a4a; border-color:#1877F2; }
+    .social-btn.x-twitter{ background:#0a0a0a; border-color:#888; color:#ccc; }
+    .social-btn.x-twitter:hover{ background:#111; border-color:#fff; color:#fff; }
+    .social-btn.instagram{ background:#1a0a1a; border-color:#E1306Caa; color:#F472B6; }
+    .social-btn.instagram:hover{ background:#2a0a2a; border-color:#E1306C; }
+    .social-icon{ font-size:0.95rem; }
+
+    /* ── Section divider ── */
+    .sec-divider{ height:1px; background:linear-gradient(90deg,transparent,rgba(212,160,23,0.25),transparent); margin:1.3rem 0; }
+
+    /* ── GST Cert Modal ── */
+    .gst-modal-overlay{ position:fixed; inset:0; z-index:8000; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:1rem; overflow-y:auto; animation:fadeIn 0.2s ease; }
+    @keyframes fadeIn{ from{opacity:0} to{opacity:1} }
+    .gst-modal{ width:100%; max-width:520px; background:linear-gradient(160deg,#110800 0%,#1e0d02 100%); border:1.5px solid rgba(212,160,23,0.35); border-radius:22px; overflow:hidden; box-shadow:0 30px 80px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.03); animation:modalIn 0.3s cubic-bezier(0.34,1.3,0.64,1); }
+    @keyframes modalIn{ from{opacity:0;transform:translateY(28px) scale(0.94)} to{opacity:1;transform:none} }
+    .gst-modal-header{ background:linear-gradient(135deg,#0a0200,#1c0e00); padding:1.3rem 1.5rem; display:flex; align-items:center; justify-content:space-between; border-bottom:1.5px solid rgba(212,160,23,0.2); position:relative; }
+    .gst-modal-header::after{ content:''; position:absolute; bottom:0; left:0; right:0; height:1.5px; background:linear-gradient(90deg,transparent,rgba(212,160,23,0.5),transparent); }
+    .gst-modal-title{ font-family:'Cinzel Decorative',serif; font-size:0.85rem; font-weight:700; color:var(--gold-light); display:flex; align-items:center; gap:0.5rem; }
+    .gst-modal-close{ width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); color:#aaa; font-size:0.9rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+    .gst-modal-close:hover{ background:rgba(255,80,80,0.18); border-color:rgba(255,80,80,0.5); color:#ffaaaa; }
+    .gst-modal-body{ padding:1.4rem; }
+
+    /* ── Cert tabs ── */
+    .cert-tabs{ display:flex; gap:0.5rem; margin-bottom:1.2rem; background:rgba(255,255,255,0.03); border:1px solid rgba(212,160,23,0.15); border-radius:12px; padding:0.3rem; }
+    .cert-tab{ flex:1; padding:0.65rem 1rem; border:none; background:transparent; border-radius:9px; cursor:pointer; font-family:'Cinzel',serif; font-size:0.7rem; font-weight:700; letter-spacing:0.08em; transition:all 0.22s; }
+    .cert-tab.andhra{ color:#60A5FA; }
+    .cert-tab.telangana{ color:#C084FC; }
+    .cert-tab.active{ background:rgba(212,160,23,0.14); color:var(--gold-light); }
+    .cert-single-label{ font-family:'Cinzel Decorative',serif; font-size:0.78rem; font-weight:700; text-align:center; padding:0.6rem 1rem; border-radius:10px; margin-bottom:0.85rem; letter-spacing:0.06em; }
+    .cert-single-label.andhra{ background:rgba(96,165,250,0.08); border:1px solid rgba(96,165,250,0.3); color:#60A5FA; }
+    .cert-single-label.telangana{ background:rgba(192,132,252,0.08); border:1px solid rgba(192,132,252,0.3); color:#C084FC; }
+
+    /* ── Cert viewer ── */
+    .cert-img-wrap{ position:relative; border-radius:13px; overflow:hidden; border:1.5px solid rgba(212,160,23,0.25); }
+    .cert-img-wrap img{ width:100%; display:block; }
+    .cert-pdf-wrap iframe{ width:100%; height:420px; border:none; display:block; }
+    .cert-img-toolbar{ position:absolute; top:0.6rem; right:0.6rem; }
+    .cert-img-btn{ width:34px; height:34px; border-radius:9px; background:rgba(0,0,0,0.7); border:1px solid rgba(212,160,23,0.35); color:var(--gold); font-size:0.9rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; backdrop-filter:blur(4px); }
+    .cert-img-btn:hover{ background:rgba(212,160,23,0.22); border-color:var(--gold); }
+    .cert-validity{ display:flex; align-items:center; gap:0.5rem; margin-top:0.85rem; padding:0.6rem 0.9rem; background:rgba(80,200,60,0.07); border:1px solid rgba(80,200,60,0.2); border-radius:9px; font-family:'Cinzel',serif; font-size:0.7rem; letter-spacing:0.1em; color:#7EE87E; }
+    .cert-dot{ width:7px; height:7px; background:#4ade80; border-radius:50%; flex-shrink:0; box-shadow:0 0 6px #4ade80; animation:cdot 2s ease-in-out infinite; }
+    @keyframes cdot{ 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .cert-no-data{ text-align:center; padding:3rem 1rem; color:rgba(180,120,60,0.5); font-style:italic; }
+
+    /* ── Welcome Screen ── */
+    .welcome-overlay{ position:fixed; inset:0; z-index:9999; background:linear-gradient(160deg,#0e0400 0%,#2a1000 50%,#1a0800 100%); display:flex; align-items:center; justify-content:center; padding:1.2rem; overflow-y:auto; }
+    .welcome-card{ width:100%; max-width:420px; background:linear-gradient(160deg,#1e0a00,#3B1F00 60%,#2a1200); border:1.5px solid var(--gold-deep); border-radius:24px; overflow:hidden; box-shadow:0 0 80px rgba(212,160,23,0.25),0 24px 60px rgba(0,0,0,0.7); animation:wIn 0.5s cubic-bezier(0.34,1.4,0.64,1); }
+    @keyframes wIn{ from{opacity:0;transform:translateY(32px) scale(0.93)} to{opacity:1;transform:none} }
+    .wc-header{ background:linear-gradient(135deg,#0a0200,#200e00); padding:1.9rem 1.5rem 1.5rem; text-align:center; border-bottom:1.5px solid var(--gold-deep); position:relative; }
+    .wc-header::after{ content:''; position:absolute; bottom:0; left:0; right:0; height:1.5px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+    .wc-diya-row{ display:flex; justify-content:center; gap:1.3rem; margin-bottom:1rem; }
+    .wc-logo{ font-size:2.8rem; margin-bottom:0.5rem; filter:drop-shadow(0 0 18px #FFD700); }
+    .wc-title{ font-family:'Cinzel Decorative',serif; font-size:clamp(1.1rem,4vw,1.5rem); font-weight:900; color:var(--gold-light); text-shadow:0 0 30px rgba(255,200,50,0.7),0 2px 8px rgba(0,0,0,0.5); line-height:1.25; }
+    .wc-sub{ font-family:'Cinzel',serif; font-size:0.65rem; letter-spacing:0.2em; color:#FFC878; text-transform:uppercase; margin-top:0.4rem; opacity:0.8; }
+    .wc-body{ padding:1.6rem 1.5rem 1.9rem; }
+    .wc-field{ margin-bottom:1.1rem; }
+    .wc-field label{ display:flex; align-items:center; gap:0.4rem; font-family:'Cinzel',serif; font-size:0.62rem; letter-spacing:0.14em; color:var(--gold); text-transform:uppercase; margin-bottom:0.42rem; }
+    .wc-field input{ width:100%; background:#0e0500; border:1px solid rgba(212,160,23,0.35); border-radius:11px; padding:0.76rem 1rem; color:#FFD68A; font-family:'Crimson Pro',serif; font-size:1rem; outline:none; transition:border 0.2s,box-shadow 0.2s; }
+    .wc-field input:focus{ border-color:var(--gold); box-shadow:0 0 0 3px rgba(212,160,23,0.18); }
+    .wc-field input::placeholder{ color:#5a3a12; font-style:italic; }
+    .wc-hint{ font-size:0.7rem; color:#C47B2B; margin-top:0.3rem; font-style:italic; }
+    .wc-err{ background:rgba(180,30,30,0.2); border:1px solid rgba(255,107,107,0.3); border-radius:9px; padding:0.55rem 0.85rem; color:#FF9999; font-size:0.82rem; margin-bottom:0.9rem; }
+    .wc-btn{ width:100%; padding:0.95rem; margin-top:0.5rem; background:linear-gradient(135deg,var(--gold-deep),var(--amber)); border:none; border-radius:13px; font-family:'Cinzel Decorative',serif; font-size:0.88rem; font-weight:700; color:var(--brown-dark); cursor:pointer; letter-spacing:0.06em; transition:all 0.22s; box-shadow:0 5px 20px rgba(212,160,23,0.4); }
+    .wc-btn:hover:not(:disabled){ background:linear-gradient(135deg,var(--gold-light),var(--gold-deep)); transform:translateY(-2px); box-shadow:0 8px 28px rgba(212,160,23,0.55); }
+    .wc-btn:disabled{ opacity:0.65; cursor:not-allowed; }
+    .wc-footer{ font-family:'Cinzel',serif; font-size:0.58rem; letter-spacing:0.1em; color:#6b4a22; text-align:center; margin-top:1rem; opacity:0.7; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar{ width:4px; height:4px; }
+    ::-webkit-scrollbar-track{ background:rgba(212,160,23,0.05); }
+    ::-webkit-scrollbar-thumb{ background:rgba(212,160,23,0.3); border-radius:4px; }
+    ::-webkit-scrollbar-thumb:hover{ background:rgba(212,160,23,0.5); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const BRANCHES = [
+      {
+        id:"b1", label:"Tech 5M", name:"Tech 5M Services", emblem:"🏛️",
+        about:"The Advance of Technology is based on making it fit in so that you don't really even notice it",
+        gst:"36ADMPV6122B1ZK",
+        certAP:"", certTS:"https://drive.google.com/file/d/1G5N9qGY-iLscv1sTyIMgh4h7xHf1anZR/view?usp=drive_link",
+        bankName:"Ramesh Varma", bankAcc:"041361900005202", bankIfsc:"YESB0000413",
+        address:"Plot No. 80 & 81B, Sairam Enclave, Vengalarao Nagar, S R Nagar, Hyderabad, T.S.",
+        email:"ramesh7319@icloud.com", phone:"+91 9553082111",
+        youtube:"", facebook:"", twitter:"", instagram:"",
+        defaultPhoto:""
+      },
+      {
+        id:"b2", label:"Tech Pack", name:"Tech Pack Solutions", emblem:"🏛️",
+        about:"The Next Generation Technologies In Packaging",
+        gst:"36AAGFT8969D1Z0",
+        certAP:"", certTS:"",
+        bankName:"Ramesh Varma", bankAcc:"041361900005202", bankIfsc:"YESB0000413",
+        address:"Plot No.4R & 5R Rajiv Gandhi Nagar, Prashanti Nagar, Kukatpally, Hyderabad, Telangana – 500037",
+        email:"helpdesk@techpack.com", phone:"+91 9553082111",
+        youtube:"", facebook:"", twitter:"", instagram:"",
+        defaultPhoto:""
+      },
+      {
+        id:"b3", label:"MFIVE LIFE", name:"MFIVE LIFE APP TEC SOLUTIONS PVT LTD", emblem:"🏛️",
+        about:"Embrace the journey of life with purpose and let every moment be a step toward your greatest potential",
+        gst:"36AANCM7710K1Z2",
+        certAP:"", certTS:"",
+        bankName:"Ramesh Varma", bankAcc:"041361900005202", bankIfsc:"YESB0000413",
+        address:"Plot No. 4R & 5R, 2nd Floor, Rajiv Gandhi Nagar, Prashanti Nagar, Kukatpally, Hyderabad, Telangana – 500037.",
+        email:"m5lifeapp@outlook.com", phone:"+91 9553082111",
+        youtube:"", facebook:"", twitter:"", instagram:"",
+        defaultPhoto:""
+      },
+      {
+        id:"b4", label:"TPS NEXT", name:"TPS NEXT", emblem:"🏛️",
+        about:"",
+        gst:"XXXXX000000X0XX",
+        certAP:"", certTS:"",
+        bankName:"Ramesh Varma", bankAcc:"041361900005202", bankIfsc:"YESB0000413",
+        address:"Plot No. XX, Area Name, City, State – 500000",
+        email:"", phone:"+91 9553082111",
+        youtube:"", facebook:"", twitter:"", instagram:"",
+        defaultPhoto:""
+      },
+      {
+        id:"b5", label:"ANUHYA POLYMERS", name:"ANUHYA POLYMERS", emblem:"🏛️",
+        about:"Precision in every pellet, quality in every product",
+        gst:"37AVDPK3526H1ZN",
+        certAP:"", certTS:"",
+        bankName:"Ramesh Varma", bankAcc:"041361900005202", bankIfsc:"YESB0000413",
+        address:"181/1 & 172/C, Beside Bharath Petrol Bunk,Budampadu,Andhra Pradesh – 522017",
+        email:"", phone:"+91 9553082111",
+        youtube:"", facebook:"", twitter:"", instagram:"",
+        defaultPhoto:""
+      },
+    ];
+
+    // ── Google Drive link → direct viewable URL ──────────────────
+    function resolveUrl(url) {
+      if (!url) return url;
+      const m = url.match(/\/file\/d\/([^/]+)/);
+      if (m) return "https://drive.google.com/uc?export=view&id=" + m[1];
+      return url;
+    }
+
+    function CssDiya() {
+      return (
+        <div className="css-diya">
+          <div className="flame"/>
+          <div className="diya-body"/>
+          <div className="diya-base"/>
+        </div>
+      );
+    }
+
+    // ── GST Cert Viewer — view only ──────────────────────────────
+    function CertViewer({ src, state }) {
+      if (!src) return null;
+      const viewSrc = resolveUrl(src);
+      const isPdf = src.toLowerCase().endsWith(".pdf");
+      return (
+        <div>
+          <div className="cert-img-wrap">
+            {isPdf
+              ? <div className="cert-pdf-wrap"><iframe src={viewSrc} title={state + " GST"}/></div>
+              : <img src={viewSrc} alt={state + " GST"}/>
+            }
+            <div className="cert-img-toolbar">
+              <button className="cert-img-btn" title="Open full screen" onClick={() => window.open(src, "_blank")}>⛶</button>
+            </div>
+          </div>
+          <div className="cert-validity">
+            <span className="cert-dot"/>
+            {state} · GST Certificate · Active
+          </div>
+        </div>
+      );
+    }
+
+    // ── GST Certificate Modal ────────────────────────────────────
+    function GSTCertModal({ branch, onClose }) {
+      const [tab, setTab] = useState("andhra");
+      const hasAP = !!branch.certAP;
+      const hasTS = !!branch.certTS;
+      const both  = hasAP && hasTS;
+
+      return (
+        <div className="gst-modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+          <div className="gst-modal">
+            <div className="gst-modal-header">
+              <div className="gst-modal-title">📄 GST Certificates — {branch.name}</div>
+              <button className="gst-modal-close" onClick={onClose}>✕</button>
+            </div>
+            <div className="gst-modal-body">
+              {both && (
+                <div className="cert-tabs">
+                  <button className={`cert-tab andhra ${tab === "andhra" ? "active" : ""}`} onClick={() => setTab("andhra")}>🏛️ Andhra Pradesh</button>
+                  <button className={`cert-tab telangana ${tab === "telangana" ? "active" : ""}`} onClick={() => setTab("telangana")}>🌿 Telangana</button>
+                </div>
+              )}
+              {hasAP && !hasTS && <div className="cert-single-label andhra">🏛️ Andhra Pradesh Certificate</div>}
+              {hasTS && !hasAP && <div className="cert-single-label telangana">🌿 Telangana Certificate</div>}
+              {both
+                ? tab === "andhra"
+                  ? <CertViewer src={branch.certAP} state="Andhra Pradesh"/>
+                  : <CertViewer src={branch.certTS} state="Telangana"/>
+                : hasAP
+                  ? <CertViewer src={branch.certAP} state="Andhra Pradesh"/>
+                  : hasTS
+                    ? <CertViewer src={branch.certTS} state="Telangana"/>
+                    : <div className="cert-no-data">No certificate added yet.</div>
+              }
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Branch Card ──────────────────────────────────────────────
+    function BranchCard({ branch }) {
+      const [showGST, setShowGST] = useState(false);
+      const hasCert = !!(branch.certAP || branch.certTS);
+
+      const socials = [
+        { key:"youtube",   cls:"youtube",   icon:"▶", label:"YouTube"   },
+        { key:"facebook",  cls:"facebook",  icon:"f", label:"Facebook"  },
+        { key:"twitter",   cls:"x-twitter", icon:"𝕏", label:"Twitter"   },
+        { key:"instagram", cls:"instagram", icon:"◎", label:"Instagram" },
+      ].filter(s => branch[s.key]);
+
+      return (
+        <>
+        <div className="branch-card">
+
+          {/* Header */}
+          <div className="card-header">
+            <span className="card-emblem">{branch.emblem}</span>
+            <div className="card-title-wrap">
+              <div className="card-name">{branch.name}</div>
+              <div className="card-active-badge">
+                <span className="badge-dot"/>
+                Active
+              </div>
+            </div>
+          </div>
+
+          {/* Photo */}
+          {branch.defaultPhoto && (
+            <div className="card-photo">
+              <img src={branch.defaultPhoto} alt={branch.name}/>
+            </div>
+          )}
+
+          <div className="card-body">
+
+            {/* About */}
+            {branch.about && (
+              <div className="about-box">
+                <div className="about-label">🌟 About</div>
+                <div className="about-text">{branch.about}</div>
+              </div>
+            )}
+
+            {/* GST + Address */}
+            <div className="section-heading">
+              <span className="section-heading-icon">🏢</span> Company Details
+            </div>
+            <div className="info-grid">
+              <div className="info-tile">
+                <div className="info-tile-label">🪪 GST Number</div>
+                <div className={`info-tile-value gst-number ${branch.gst ? "" : "empty"}`}>
+                  {branch.gst || "— Add here —"}
+                </div>
+              </div>
+              <div className="info-tile">
+                <div className="info-tile-label">📍 Address</div>
+                <div className={`info-tile-value ${branch.address ? "" : "empty"}`}>
+                  {branch.address || "— Add here —"}
+                </div>
+              </div>
+            </div>
+
+            <div className="sec-divider"/>
+
+            {/* Contact */}
+            <div className="contact-section">
+              <div className="section-heading">
+                <span className="section-heading-icon">📞</span> Contact Information
+              </div>
+              <a className="contact-row" href={branch.phone ? `tel:${branch.phone}` : undefined}>
+                <span className="contact-icon-wrap">📱</span>
+                <div className="contact-text">
+                  <div className="contact-label">Phone Number</div>
+                  <div className={`contact-value ${branch.phone ? "" : "empty"}`}>{branch.phone || "— Add here —"}</div>
+                </div>
+                {branch.phone && <span className="contact-arrow">›</span>}
+              </a>
+              <a className="contact-row" href={branch.email ? `mailto:${branch.email}` : undefined}>
+                <span className="contact-icon-wrap">✉️</span>
+                <div className="contact-text">
+                  <div className="contact-label">Email Address</div>
+                  <div className={`contact-value ${branch.email ? "" : "empty"}`}>{branch.email || "— Add here —"}</div>
+                </div>
+                {branch.email && <span className="contact-arrow">›</span>}
+              </a>
+            </div>
+
+            <div className="sec-divider"/>
+
+            {/* Bank Details */}
+            <div className="bank-section">
+              <div className="section-heading">
+                <span className="section-heading-icon">🏦</span> Bank Details
+              </div>
+              <div className="bank-grid">
+                <div className="bank-tile">
+                  <div className="bank-tile-label">Account Name</div>
+                  <div className={`bank-tile-value ${branch.bankName && !branch.bankName.includes("Add") ? "" : "empty"}`}>{branch.bankName || "—"}</div>
+                </div>
+                <div className="bank-tile">
+                  <div className="bank-tile-label">Account Number</div>
+                  <div className={`bank-tile-value ${branch.bankAcc && !branch.bankAcc.includes("Add") ? "" : "empty"}`}>{branch.bankAcc || "—"}</div>
+                </div>
+                <div className="bank-tile full-width">
+                  <div className="bank-tile-label">IFSC Code</div>
+                  <div className={`bank-tile-value ${branch.bankIfsc && !branch.bankIfsc.includes("Add") ? "" : "empty"}`}>{branch.bankIfsc || "—"}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* GST Certificate Button */}
+            {hasCert && (
+              <>
+              <div className="sec-divider"/>
+              <div className="gst-btn-wrap">
+                <button className="gst-cert-btn" onClick={() => setShowGST(true)}>
+                  <span className="gst-btn-icon">📄</span>
+                  <span className="gst-btn-text">View GST Certificate</span>
+                  <span className="gst-btn-arrow">›</span>
+                </button>
+              </div>
+              </>
+            )}
+
+            {/* Social Media */}
+            {socials.length > 0 && (
+              <>
+              <div className="sec-divider"/>
+              <div className="social-section">
+                <div className="section-heading">
+                  <span className="section-heading-icon">🌐</span> Social Media
+                </div>
+                <div className="social-row">
+                  {socials.map(s => (
+                    <a key={s.key} className={`social-btn ${s.cls}`} href={branch[s.key]} target="_blank" rel="noopener noreferrer">
+                      <span className="social-icon">{s.icon}</span> {s.label}
+                    </a>
+                  ))}
+                </div>
+              </div>
+              </>
+            )}
+
+          </div>
+        </div>
+        {showGST && <GSTCertModal branch={branch} onClose={() => setShowGST(false)}/>}
+        </>
+      );
+    }
+
+    // ─── Google Apps Script URL ──────────────────────────────────
+    const SHEET_URL = "https://script.google.com/macros/s/AKfycbzK3MwxKHuPOpzuh7ZlZjnyt0Dd82-3fSj5edExh3gzCXDAPrWsyJ17h79W6rkRF1AIzA/exec";
+
+    // ── Silent visitor tracker ───────────────────────────────────
+    (function trackVisit() {
+      const visitId = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+      window.__visitId = visitId;
+      const arrivedAt = new Date();
+      function fmtFull(d){ return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+      function post(p){ if(!SHEET_URL||SHEET_URL==="YOUR_APPS_SCRIPT_URL_HERE")return; fetch(SHEET_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)}).catch(()=>{}); }
+      function deviceType(){ const w=window.innerWidth; if(w<=480)return"Mobile"; if(w<=1024)return"Tablet"; return"Desktop"; }
+      function browserName(){ const ua=navigator.userAgent; if(/Edg\//.test(ua))return"Edge"; if(/OPR\//.test(ua))return"Opera"; if(/Chrome\//.test(ua))return"Chrome"; if(/Safari\//.test(ua))return"Safari"; if(/Firefox\//.test(ua))return"Firefox"; return"Other"; }
+      fetch("https://ipapi.co/json/").then(r=>r.json()).then(geo=>{
+        post({action:"visit",visitId,arrivalTime:fmtFull(arrivedAt),city:geo.city||"—",region:geo.region||"—",country:geo.country_name||"—",ip:geo.ip||"—",browser:browserName(),device:deviceType(),os:navigator.platform||"—",screenSize:`${screen.width}×${screen.height}`,language:navigator.language||"—",referrer:document.referrer||"Direct",pageURL:window.location.href});
+      }).catch(()=>{
+        post({action:"visit",visitId,arrivalTime:fmtFull(arrivedAt),city:"—",region:"—",country:"—",ip:"—",browser:browserName(),device:deviceType(),os:navigator.platform||"—",screenSize:`${screen.width}×${screen.height}`,language:navigator.language||"—",referrer:document.referrer||"Direct",pageURL:window.location.href});
+      });
+      function logExit(){ const s=Math.round((Date.now()-arrivedAt.getTime())/1000); post({action:"exit",visitId,exitTime:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),timeSpent:`${Math.floor(s/60)}m ${s%60}s`}); }
+      window.addEventListener("beforeunload",logExit);
+      document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden")logExit(); });
+    })();
+
+    // ── Welcome / Login Screen ───────────────────────────────────
+    function WelcomeScreen({ onEnter, visitId }) {
+      const [name,    setName]    = useState('');
+      const [contact, setContact] = useState('');
+      const [err,     setErr]     = useState('');
+      const [loading, setLoading] = useState(false);
+
+      const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+      const isPhone = v => /^\+?[\d\s\-()]{7,15}$/.test(v.trim());
+
+      const submit = async () => {
+        if (!name.trim())                          return setErr('Please enter your name.');
+        if (!contact.trim())                       return setErr('Please enter your email or phone number.');
+        if (!isEmail(contact) && !isPhone(contact)) return setErr('Enter a valid email or phone number.');
+        setErr(''); setLoading(true);
+        if (SHEET_URL && SHEET_URL !== "YOUR_APPS_SCRIPT_URL_HERE") {
+          fetch(SHEET_URL, {
+            method:"POST", mode:"no-cors",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({
+              action:"identify", visitId,
+              name:name.trim(), contact:contact.trim(),
+              type:isEmail(contact)?"Email":"Phone"
+            })
+          }).catch(()=>{});
+        }
+        setLoading(false);
+        onEnter({ name: name.trim(), contact: contact.trim() });
+      };
+
+      return (
+        <div className="welcome-overlay">
+          <div className="welcome-card">
+
+            <div className="wc-body">
+              <div className="wc-field">
+                <label>👤 Your Name</label>
+                <input type="text" placeholder="Enter your full name"
+                  value={name} autoFocus
+                  onChange={e => setName(e.target.value)}
+                  onKeyDown={e => e.key==='Enter' && submit()}/>
+              </div>
+              <div className="wc-field">
+                <label>✉️ Email or 📱 Phone No</label>
+                <input type="text" placeholder="you@email.com  or  +91 98765 43210"
+                  value={contact}
+                  onChange={e => setContact(e.target.value)}
+                  onKeyDown={e => e.key==='Enter' && submit()}/>
+                <div className="wc-hint">Either one works — your choice.</div>
+              </div>
+              {err && <div className="wc-err">⚠️ {err}</div>}
+              <button className="wc-btn" onClick={submit} disabled={loading}>
+                {loading ? '🪔 Entering…' : '🪔 Enter'}
+              </button>
+              <div className="wc-footer">Your information is kept private and never shared.</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Main App ─────────────────────────────────────────────────
+    function App() {
+      const [active,  setActive]  = useState("b1");
+      const [entered, setEntered] = useState(false);
+      const [visitId, setVisitId] = useState(null);
+      const branch = BRANCHES.find(b => b.id === active);
+
+      useEffect(() => {
+        const check = () => { if (window.__visitId) setVisitId(window.__visitId); else setTimeout(check, 100); };
+        check();
+      }, []);
+
+      if (!entered) return <WelcomeScreen visitId={visitId} onEnter={() => setEntered(true)}/>;
+
+      return (
+        <>
+          <div className="tab-bar">
+            {BRANCHES.map(b => (
+              <button key={b.id}
+                className={`branch-tab ${active === b.id ? "active" : ""}`}
+                onClick={() => setActive(b.id)}>
+                {b.label}
+              </button>
+            ))}
+          </div>
+          <div className="page-body">
+            {branch && <BranchCard key={branch.id} branch={branch}/>}
+          </div>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+  </script>
+</body>
+</html>
